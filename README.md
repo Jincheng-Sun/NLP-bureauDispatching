@@ -12,3 +12,5 @@
 	|- lib	        : wheels library 
 	|- tfidf        : tfidf to extract features
 	|- sjc		: NN
+	   -Datacleaning	:format data
+	   -
