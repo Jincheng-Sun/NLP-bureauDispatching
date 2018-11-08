@@ -100,7 +100,7 @@ def read_dataset(file):
 
 
 def dataset_input_fn():
-    filenames = './train.tfrecords'
+    filenames = '../train36000.tfrecords'
     dataset = tf.data.TFRecordDataset(filenames)
 
     def parser(record):
@@ -118,7 +118,7 @@ def dataset_input_fn():
         return vector, label
 
     dataset = dataset.map(parser)
-    dataset = dataset.shuffle(buffer_size=5000)
+    dataset = dataset.shuffle(buffer_size=36000)
     dataset = dataset.batch(50)
     dataset = dataset.repeat(num_epochs)
     iterator = dataset.make_one_shot_iterator()
