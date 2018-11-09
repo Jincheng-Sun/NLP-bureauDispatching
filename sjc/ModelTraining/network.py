@@ -11,10 +11,10 @@ Flags = tf.flags.FLAGS
 # 定义网络参数
 learning_rate = 0.001
 display_step = 5
-num_epochs = 20
+num_epochs = 5
 keep_prob = 0.5
 n_cls = 6
-iters = 2000
+iters = 5000
 
 
 def conv_layer(input, name, kh, kw, shape_in, shape_out, padding="SAME",usebias=True):
@@ -119,7 +119,7 @@ def dataset_input_fn():
 
     dataset = dataset.map(parser)
     dataset = dataset.shuffle(buffer_size=36000)
-    dataset = dataset.batch(50)
+    dataset = dataset.batch(36)
     dataset = dataset.repeat(num_epochs)
     iterator = dataset.make_one_shot_iterator()
     features, labels = iterator.get_next()
@@ -133,12 +133,18 @@ def train():
     vec_batch, label_batch = dataset_input_fn()
 
     logits = nlp_structure(batch_x)
-
-    loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=logits, labels=batch_y))
+    with tf.name_scope('loss'):
+        loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=logits, labels=batch_y))
 
     optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate).minimize(loss)
     correct_pred = tf.equal(tf.argmax(logits, 1), tf.argmax(batch_y, 1))
-    accuracy = tf.reduce_mean(tf.cast(correct_pred, tf.float32))
+    with tf.name_scope('accuracy'):
+        accuracy = tf.reduce_mean(tf.cast(correct_pred, tf.float32))
+    # tf.summary.scalar('loss',loss)
+    # tf.summary.scalar('accuracy',accuracy)
+
+    merge=tf.summary.merge_all()
+
 
     init = tf.group(tf.global_variables_initializer(), tf.local_variables_initializer())
     saver = tf.train.Saver()
@@ -146,16 +152,20 @@ def train():
         sess.run(init)
         coord = tf.train.Coordinator()
         threads = tf.train.start_queue_runners(sess=sess, coord=coord)
+
+        writer = tf.summary.FileWriter('logs/', sess.graph)
         for i in range(iters):
             v_batch, l_batch = sess.run([vec_batch, label_batch])
 
             _, loss_var, ac_var,logit= sess.run([optimizer, loss,accuracy,logits], feed_dict={batch_x: v_batch, batch_y: l_batch})
             # print(logit)
             # print(l_batch)
-
+            if(i%50 ==0):
+                merge_data=sess.run([merge],feed_dict={batch_x: v_batch, batch_y: l_batch})
+                writer.add_summary(merge_data,i)
             print("Step [%d]  Loss : %f, training accuracy :  %g" % (i, loss_var, ac_var))
-            if (i % 200 == 1):
-                saver.save(sess, './model/model.ckpt', global_step=i)
+            if (i % 200 == 0):
+                saver.save(sess, './model2/model.ckpt', global_step=i)
         coord.request_stop()
         coord.join(threads)
 
