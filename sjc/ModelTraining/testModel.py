@@ -6,7 +6,7 @@ sys.path.append("/Users/sunjincheng/Desktop/NLPproject/NLP-bureauDispatching/sjc
 from network import nlp_structure
 
 def load_dataset():
-    filenames = '../train36000.tfrecords'
+    filenames = '../test4000.tfrecords'
     dataset = tf.data.TFRecordDataset(filenames)
 
     def parser(record):
@@ -24,7 +24,7 @@ def load_dataset():
         return vector, label
 
     dataset = dataset.map(parser)
-    dataset = dataset.batch(4000)
+    dataset = dataset.batch(400)
     iterator = dataset.make_one_shot_iterator()
     features, labels = iterator.get_next()
 
@@ -43,7 +43,7 @@ def test():
 
         # saver = tf.train.import_meta_graph('model/model.ckpt-1801.meta')
         saver = tf.train.Saver()
-        saver.restore(sess,'./model/model.ckpt-1801')
+        saver.restore(sess,'./model/model.ckpt-1')
         sess.run(init)
         # for i in range(4000):
         v_batch,l_batch=sess.run([vec_batch,label_batch])

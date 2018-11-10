@@ -2,7 +2,7 @@ import os
 import tensorflow as tf
 import pandas as pd
 import numpy as np
-from tfidf import get_instance_tfidf_vector
+from .tfidf import get_instance_tfidf_vector
 import time
 import csv
 from itertools import islice
@@ -19,13 +19,15 @@ def create_dataset(path):
     i = 0
     csvfile = csv.reader(open('./datas/testset_with_label.csv'))
 
-    writer = tf.python_io.TFRecordWriter("train36000.tfrecords")
-    writer2 = tf.python_io.TFRecordWriter("test4000.tfrecords")
+    writer = tf.python_io.TFRecordWriter("train100.tfrecords")
+    writer2 = tf.python_io.TFRecordWriter("test100.tfrecords")
 
     for line in islice(csvfile,2,None):
 
         vec_id=line[0]
         # vector=vector.reshape(152,152)
+
+        #根据id寻找pickle中对应的值
         vec=get_instance_tfidf_vector(vec_id)
         vec=np.array(vec)
         makeup=np.zeros(236)
@@ -41,13 +43,14 @@ def create_dataset(path):
             'vec_raw': tf.train.Feature(bytes_list=tf.train.BytesList(value=[vec_raw]))
         }))
         i += 1
-        if(i<=36000):
+        if(i<=100):
             writer.write(example.SerializeToString())
 
         if(i%1000==0):
             print(i)
-        if(i>36000):
-            writer2.write(example.SerializeToString())
+        if(i>100):
+            break
+            # writer2.write(example.SerializeToString())
     writer.close()
 
 def read_dataset(file,epochs):
