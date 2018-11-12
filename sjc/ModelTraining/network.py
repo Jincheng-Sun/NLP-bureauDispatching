@@ -11,13 +11,13 @@ Flags = tf.flags.FLAGS
 # 定义网络参数
 learning_rate = 0.001
 display_step = 5
-num_epochs = 5
+num_epochs = 1
 keep_prob = 0.5
 n_cls = 6
 iters = 5000
 
 
-def conv_layer(input, name, kh, kw, shape_in, shape_out, padding="SAME",usebias=True):
+def conv_layer(input, name, kh, kw, shape_in, shape_out, padding="SAME",usebias=True,istraining=True):
     # 卷积层
     input = tf.convert_to_tensor(input)
     with tf.name_scope(name) as scope:
@@ -26,6 +26,7 @@ def conv_layer(input, name, kh, kw, shape_in, shape_out, padding="SAME",usebias=
                                  dtype=tf.float32,
                                  initializer=tf.truncated_normal_initializer(stddev=0.2))
         conv = tf.nn.conv2d(input, kernel, strides=[1, 1, 1, 1], padding=padding)
+        conv = tf.layers.batch_normalization(conv,training=istraining)
         if(usebias):
             bias_init_val = tf.constant(0.0, shape=[shape_out], dtype=tf.float32)
             biases = tf.Variable(bias_init_val, trainable=True, name='b')
@@ -38,7 +39,7 @@ def conv_layer(input, name, kh, kw, shape_in, shape_out, padding="SAME",usebias=
     return activation
 
 
-def fc_layer(input, name, shape_output):
+def fc_layer(input, name, shape_output,usebias=True,istraining=True):
     # 全连接层
     shape_input = input.get_shape()[-1].value
     in_reshape = tf.reshape(input, [-1, shape_input])
@@ -49,11 +50,19 @@ def fc_layer(input, name, shape_output):
                                  initializer=tf.truncated_normal_initializer(stddev=0.1)
                                  )
 
-        biases = tf.Variable(tf.constant(0.1, shape=[shape_output], dtype=tf.float32), name='b')
-        logits = tf.add(tf.matmul(in_reshape,kernel),biases)
-        logits = tf.nn.leaky_relu(logits)
-        tf.summary.histogram(scope + 'w', kernel)
-        tf.summary.histogram(scope + 'b', biases)
+        if(usebias):
+            biases = tf.Variable(tf.constant(0.1, shape=[shape_output], dtype=tf.float32), name='b')
+            logits = tf.matmul(in_reshape, kernel)
+            logits = tf.layers.batch_normalization(logits,training=istraining)
+            logits = tf.add(logits, biases)
+            logits = tf.nn.leaky_relu(logits)
+            tf.summary.histogram(scope + 'w', kernel)
+            tf.summary.histogram(scope + 'b', biases)
+        else:
+            logits = tf.matmul(in_reshape, kernel)
+            logits = tf.layers.batch_normalization(logits, training=istraining)
+            logits = tf.nn.leaky_relu(logits)
+            tf.summary.histogram(scope + 'w', kernel)
 
         # w=tf.get_default_graph().get_tensor_by_name()
         # w= tf.get_variable('kernel')
@@ -108,7 +117,7 @@ def read_dataset(file):
     return vector, label
 
 
-def dataset_input_fn(filenames,batch,buffersize):
+def     dataset_input_fn(filenames,batch,buffersize,onehot=True):
 
     dataset = tf.data.TFRecordDataset(filenames)
 
@@ -125,7 +134,10 @@ def dataset_input_fn(filenames,batch,buffersize):
 
         vector = tf.cast(vector, tf.float32)
         label = tf.cast(parsed['label'], tf.int32)
-        label = tf.one_hot(label, n_cls, 1, 0)
+        if onehot:
+            label = tf.one_hot(label, n_cls, 1, 0)
+        else:
+            label = tf.reshape(label,[1])
         return vector, label
 
     dataset = dataset.map(parser)
