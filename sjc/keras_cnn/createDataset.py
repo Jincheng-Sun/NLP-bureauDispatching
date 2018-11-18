@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+
 import numpy as np
 import pickle
 import os
@@ -25,7 +25,7 @@ def scale(words):
 def createDataset():
     instance_tokens_file = "tfidf_instance_tokens.pickle"
 
-    with open(instance_tokens_file, 'r') as itf:
+    with open(instance_tokens_file, 'rb') as itf:
         instance_tokens = pickle.load(itf)
     datacsv = pd.read_csv('../datas/4w_trainset.csv', encoding='gb18030')
     dataset = []
@@ -37,25 +37,45 @@ def createDataset():
         words = instance_tokens[str(id)]
         words = scale(words)
         words = np.array(words)
-        words = words.flatten()
+        # words = words.flatten()
         label = datacsv.loc[i]['单位类别']
         dataset.append([id, words, label])
         # dataset[0][1].reshape([247, 100])
         if i % 1000 == 0:
             print(i)
-    df = pd.DataFrame(dataset, columns=['ID', 'Features', 'Labels'])
-    ndata = np.array(df)
-    # np.save('dataset_4w.npy', ndata)
-    return ndata
+        if ((i+1) % 10000==0):
+            df = pd.DataFrame(dataset, columns=['ID', 'Features', 'Labels'])
+            ndata = np.array(df)
+            np.save('dataset_4w%d.npy' %(i+1), ndata)
+            dataset.clear()
 
 
 
 
 
-def readDataset():
-    csv=pd.read_csv('dataset_4w.csv',encoding='gb18030')
-    print(csv.loc[0][1])
+
+def loadDataset(i):
+    features,labels=[],[]
+    npy1 = np.load('dataset_4w10000.npy')
+    features = np.array(npy1[:, 1].tolist()).reshape([10000,247,100,1])
+    labels = np.array(npy1[:,2].tolist())
+    for n in range(2,i+1):
+        npy=np.load('dataset_4w%d0000.npy'%n)
+        feature=npy[:,1].tolist()
+
+        feature=np.array(feature)
+
+        feature=feature.reshape([10000,247,100,1])
+
+        label=npy[:,2].tolist()
+
+        label=np.array(label)
 
 
+        features=np.append(features,feature,axis=0)
 
-createDataset()
+        labels=np.append(labels,label,axis=0)
+
+    return features,labels
+
+f,l=loadDataset(1)
