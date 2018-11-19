@@ -35,7 +35,7 @@ def count_token_frequency(iid, inverse_index_value):
 
 
 
-file_path = "testset.csv"
+file_path = "../datas/4w_trainset.csv"
 source_file = open(file_path, 'r', encoding='gb18030')  # encoding='gb18030'
 reader = csv.reader(source_file)
 

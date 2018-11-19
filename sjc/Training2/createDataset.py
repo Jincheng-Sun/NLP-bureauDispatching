@@ -142,15 +142,15 @@ def create_w2v_dataset():
             'vec_raw': tf.train.Feature(bytes_list=tf.train.BytesList(value=[vec_raw]))
         }))
         i += 1
-        if (i <= 36000):
+        if (i <= 72000):
             writer.write(example.SerializeToString())
 
         if (i % 1000 == 0):
             print(i)
-        if (i > 36000 and i <= 40000):
+        if (i > 72000 and i <= 80000):
             writer2.write(example.SerializeToString())
 
-        if (i == 40000):
+        if (i == 80000):
             break
     writer.close()
 

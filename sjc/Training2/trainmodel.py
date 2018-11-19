@@ -23,6 +23,8 @@ def conv_layer(input, name, kh, kw, shape_in, shape_out, padding="SAME",usebias=
                                  )
         #卷积操作，步长为[1,1]，即kernel*input
         conv = tf.nn.conv2d(input, kernel, strides=[1, 1, 1, 1], padding=padding)
+        # conv = tf.keras.regularizers.l1(conv)
+
         #对卷积后的数据进行BatchNormalization操作
         bn = tf.layers.batch_normalization(conv,training=istraining,momentum=0.9)
 
@@ -56,6 +58,7 @@ def fc_layer(input, name, shape_output,usebias=True,istraining=True,useactivatio
                                  )
 
         mul = tf.matmul(in_reshape, kernel)
+        # mul = tf.keras.regularizers.l2(mul)
         bn = tf.layers.batch_normalization(mul, training=istraining,momentum=0.9)
         if(usebias):
             biases = tf.Variable(tf.constant(0.1, shape=[shape_output], dtype=tf.float32), name='b')
@@ -325,4 +328,4 @@ def conti_train():
 
 
 
-test()
+train()

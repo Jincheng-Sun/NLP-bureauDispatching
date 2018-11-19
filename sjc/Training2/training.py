@@ -39,7 +39,7 @@ def conv_layer(input, name, kh, kw, shape_in, shape_out, padding="SAME",usebias=
     return activation
 
 
-def fc_layer(input, name, shape_output,usebias=True,istraining=True,useactivation=True,dropout=0.8):
+def fc_layer(input, name, shape_output,usebias=True,istraining=True,useactivation=True,dropout=1):
     # 全连接层
     #shape_input为每个feature flatten后的size
     shape_input = input.get_shape()[-1].value

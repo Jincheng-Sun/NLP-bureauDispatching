@@ -11,7 +11,7 @@ Flags = tf.flags.FLAGS
 # 定义网络参数
 learning_rate = 0.001
 display_step = 5
-num_epochs = 1
+num_epochs = 50
 keep_prob = 0.5
 n_cls = 6
 iters = 5000
@@ -117,7 +117,7 @@ def read_dataset(file):
     return vector, label
 
 
-def     dataset_input_fn(filenames,batch,buffersize,onehot=True):
+def dataset_input_fn(filenames,batch,buffersize,onehot=True):
 
     dataset = tf.data.TFRecordDataset(filenames)
 
@@ -130,12 +130,12 @@ def     dataset_input_fn(filenames,batch,buffersize,onehot=True):
 
         vector = tf.decode_raw(parsed['vec_raw'], tf.float64)
         # vector = sk.preprocessing.scale(vector)
-        vector = tf.reshape(vector, [152, 152, 1])
+        vector = tf.reshape(vector, [247, 100, 1])
 
         vector = tf.cast(vector, tf.float32)
         label = tf.cast(parsed['label'], tf.int32)
         if onehot:
-            label = tf.one_hot(label, n_cls, 1, 0)
+            label = tf.one_hot(label, 5, 1, 0)
         else:
             label = tf.reshape(label,[1])
         return vector, label

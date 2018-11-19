@@ -8,6 +8,7 @@ index_file = "tfidf_inverse_index.pickle"
 instance_tokens_file = "tfidf_instance_tokens.pickle"
 
 global tfidf_inverse_index
+global instance_tokens
 global tfidf_log_inversed_df
 global tfidf_dimen_tokens
 global tfidf_dimen_order
@@ -29,7 +30,8 @@ tfidf_log_inversed_df = [0] * len(tfidf_dimen_tokens)  # cache log(N / df)
 
 for i in range(0, len(tfidf_dimen_tokens)):
 	token = tfidf_dimen_tokens[i]
-	tfidf_log_inversed_df[i] = math.log10( num_instances / len(tfidf_inverse_index[token]) )
+	l= len(tfidf_inverse_index[token])
+	tfidf_log_inversed_df[i] = math.log10( num_instances / l )
 
 # shuffle order of dimension
 tfidf_dimen_order = list(range(0, len(tfidf_dimen_tokens)))
@@ -56,30 +58,34 @@ def get_instance_tfidf_vector(instance_id, if_shuffled):
 				tf = ele[1]
 				break
 		# calculate tf-idf
-		vector[i] = math.log( 1 + tf) * idf
+		# vector[i] = math.log( 1 + tf) * idf
+		vector[i]=tf
 
-	if if_shuffled:
-		# shuffle dimension
-		shuffled_vector = []
-		for i in tfidf_dimen_order:
-			shuffled_vector.append(vector[i])
-		return shuffled_vector
-	
-	else:
-		return vector
+	# if if_shuffled:
+	# 	# shuffle dimension
+	# 	shuffled_vector = []
+	# 	for i in tfidf_dimen_order:
+	# 		shuffled_vector.append(vector[i])
+	# 	return shuffled_vector
+	#
+	# else:
+	return vector
 
 
 
 
 if __name__ == '__main__':
-	
+	with open(instance_tokens_file, 'rb') as itf:
+		instance_tokens = pickle.load(itf)
+	i=0
+	for line in instance_tokens:
+		i+=1
+		print(line)
+	print (i)
+	print(get_instance_tfidf_vector('123456',False))
+	print(instance_tokens)
 
-	# test
-	for i in  range(0, 100):
-		start = time.time()
-		result  = get_instance_tfidf_vector("113508", True)
-		end = time.time()
-		print(end - start)
+
 	
 
 
