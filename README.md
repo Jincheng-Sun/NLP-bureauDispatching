@@ -6,7 +6,7 @@
 	```
 
 ### directories
-|
+	|
 	|- bayes 	: naive bayes 
 	|- data 	: intermediate data
 	|- lib	        : wheels library 
