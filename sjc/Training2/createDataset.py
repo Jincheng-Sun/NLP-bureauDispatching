@@ -2,7 +2,7 @@ import os
 import tensorflow as tf
 import pandas as pd
 import numpy as np
-# from ModelTraining.tfidf import get_instance_tfidf_vector
+from ModelTraining.tfidf import get_single_tfidf
 import time
 import csv
 from itertools import islice
@@ -94,6 +94,24 @@ def scale(words):
     return w2vs
 
 
+def scale_avg(words):
+    w2vs = np.array([])
+    count = 0
+    for word in words:
+        try:
+            # tfidf=get_single_tfidf(word,id)
+            vector = synonyms.v(word)
+
+        except KeyError:
+            vector = np.zeros([1, 100])
+
+        w2vs = np.append(w2vs, vector)
+        count += 1
+    w2vs = np.reshape(w2vs, [count, 100])
+    w2vs = np.sum(w2vs, axis=0) / count
+    return w2vs
+
+
 def create_w2v_dataset():
     i = 0
     index_file = "tfidf_inverse_index.pickle"
@@ -104,9 +122,9 @@ def create_w2v_dataset():
     with open(instance_tokens_file, 'rb') as itf:
         instance_tokens = pickle.load(itf)
 
-    csvfile = csv.reader(open('../datas/4w_trainset.csv',encoding='gb18030'))
+    csvfile = csv.reader(open('../datas/8w_trainset.csv',encoding='gb18030'))
 
-    writer = tf.python_io.TFRecordWriter("train36000v1.tfrecords")
+    writer = tf.python_io.TFRecordWriter("train10000v1.tfrecords")
     writer2 = tf.python_io.TFRecordWriter("test4000v1.tfrecords")
 
     # for line in instance_tokens:
@@ -122,7 +140,7 @@ def create_w2v_dataset():
             print('No.%s was not found' %KeyError)
             words = 0
             continue
-        vector= scale(words)
+        vector= scale_avg(words)
         vec_raw=vector.tobytes()
         # vector=vector.reshape(152,152)
 
@@ -142,7 +160,7 @@ def create_w2v_dataset():
             'vec_raw': tf.train.Feature(bytes_list=tf.train.BytesList(value=[vec_raw]))
         }))
         i += 1
-        if (i <= 72000):
+        if (i <= 10000):
             writer.write(example.SerializeToString())
 
         if (i % 1000 == 0):
@@ -150,7 +168,7 @@ def create_w2v_dataset():
         if (i > 72000 and i <= 80000):
             writer2.write(example.SerializeToString())
 
-        if (i == 80000):
+        if (i == 10000):
             break
     writer.close()
 

@@ -12,8 +12,8 @@ def scale(words,id):
     count = 0
     for word in words:
         try:
-            tfidf=get_single_tfidf(word,id)
-            vector = synonyms.v(word)*tfidf
+            # tfidf=get_single_tfidf(word,id)
+            vector = synonyms.v(word)
 
         except KeyError:
             vector = np.zeros([1, 100])
