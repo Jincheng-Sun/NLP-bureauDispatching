@@ -4,9 +4,9 @@ import os
 import pandas as pd
 # import tensorflow as tf
 # from itertools import islice
-from synonyms import synonyms
-from ModelTraining.tfidf import get_single_tfidf,get_instance_tfidf_vector
-
+# from synonyms import synonyms
+# from ModelTraining.tfidf import get_single_tfidf,get_instance_tfidf_vector
+# from bow.bow import get_bag_of_word_vector
 def scale(words,id):
     w2vs = np.array([])
     count = 0
@@ -52,6 +52,29 @@ def createDataset():
             np.save('dataset_4w%d.npy' % (i + 1), ndata)
             dataset.clear()
 
+def createBowDs():
+
+    datacsv = pd.read_csv('../datas/8w_trainset.csv', encoding='gb18030')
+    dataset = []
+    for i in range(0, datacsv.shape[0]):
+        id = datacsv.loc[i]['ID']
+        words = get_bag_of_word_vector(id)
+        words = np.array(words)
+        makeup = np.zeros(274)
+        vec = np.concatenate([words, makeup])
+        vec = vec.reshape(141, 141)
+        # words = words.flatten()
+        label = datacsv.loc[i]['单位类别']
+        dataset.append([id, vec, label])
+        # dataset[0][1].reshape([247, 100])
+        if i % 1000 == 0:
+            print(i)
+        if ((i + 1) % 10000 == 0):
+            df = pd.DataFrame(dataset, columns=['ID', 'Features', 'Labels'])
+            ndata = np.array(df)
+            np.save('dataset_4w%d.npy' % (i + 1), ndata)
+            dataset.clear()
+
 
 def loadDataset(i):
     features, labels = [], []
@@ -76,5 +99,26 @@ def loadDataset(i):
 
     return features, labels
 
+def loadBowDs(i):
+    npy1 = np.load('dataset_4w10000.npy')
+    features = np.array(npy1[:, 1].tolist()).reshape([10000, 141, 141, 1])
+    labels = np.array(npy1[:, 2].tolist())
+    for n in range(2, i + 1):
+        npy = np.load('dataset_4w%d0000.npy' % n)
+        feature = npy[:, 1].tolist()
 
-createDataset()
+        feature = np.array(feature)
+
+        feature = feature.reshape([10000, 141, 141, 1])
+
+        label = npy[:, 2].tolist()
+
+        label = np.array(label)
+
+        features = np.append(features, feature, axis=0)
+
+        labels = np.append(labels, label, axis=0)
+
+    return features, labels
+
+
